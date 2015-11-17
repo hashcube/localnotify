@@ -147,7 +147,7 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
 			.setAutoCancel(true)
-			.setSmallIcon(context.getResources().getIdentifier("icon", "drawable", context.getPackageName()))
+			.setSmallIcon(context.getResources().getIdentifier("notifyicon", "drawable", context.getPackageName()))
 			.setContentTitle(info.title)
 			.setContentText(info.text)
 			.setTicker(info.title)
