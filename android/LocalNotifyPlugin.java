@@ -32,6 +32,8 @@ import android.app.AlarmManager;
 import android.support.v4.app.NotificationCompat;
 import android.app.Notification;
 import android.net.Uri;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import com.tealeaf.EventQueue;
 import com.tealeaf.event.*;
@@ -133,6 +135,8 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 	public static void showNotification(Context context, NotificationData info) {
 		int defaults = Notification.DEFAULT_LIGHTS;
 
+		Bitmap icon = BitmapFactory.decodeResource(context.getResources(), context.getResources().getIdentifier("icon", "drawable", context.getPackageName()));
+
 		info.shown = true;
 
 		// If vibration is specified,
@@ -148,6 +152,7 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
 			.setAutoCancel(true)
 			.setSmallIcon(context.getResources().getIdentifier("notifyicon", "drawable", context.getPackageName()))
+			.setLargeIcon(icon)
 			.setContentTitle(info.title)
 			.setContentText(info.text)
 			.setTicker(info.title)
