@@ -157,13 +157,10 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 			.setContentText(info.text)
 			.setTicker(info.title)
 			.setOnlyAlertOnce(false)
-			.setDefaults(defaults);
-
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-			builder.setStyle(new NotificationCompat.BigTextStyle()
+			.setDefaults(defaults)
+			.setStyle(new NotificationCompat.BigTextStyle()
 				.setBigContentTitle(info.title)
 				.bigText(info.text));
-		}
 
 		// TODO: Icon and sound
 
