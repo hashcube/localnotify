@@ -430,13 +430,22 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 		DeliverPending();
 	}
 
+	public void onFirstRun() {
+	}
+
 	public void onResume() {
 		_active = true;
 		DeliverPending();
 	}
 
+	public void onRenderResume() {
+	}
+
 	public void onPause() {
 		_active = false;
+	}
+
+	public void onRenderPause() {
 	}
 
 	public void onStop() {
