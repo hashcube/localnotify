@@ -135,7 +135,7 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 	public static void showNotification(Context context, NotificationData info) {
 		int defaults = Notification.DEFAULT_LIGHTS;
 
-		Bitmap icon = BitmapFactory.decodeResource(context.getResources(), context.getResources().getIdentifier("icon", "drawable", context.getPackageName()));
+		Bitmap icon = BitmapFactory.decodeResource(context.getResources(), context.getResources().getIdentifier("icon", "mipmap", context.getPackageName()));
 
 		info.shown = true;
 
