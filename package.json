@@ -1,6 +1,6 @@
 {
   "name": "localnotify",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "devkit": {
     "clientPaths": {
         "localNotify": "js"
