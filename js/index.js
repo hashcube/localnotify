@@ -127,13 +127,10 @@ var LocalNotify = Class(Emitter, function (supr) {
 		}));
 	}
 
-	this.getDevice = function () {
+	this.isIos = function () {
 	    if (device.isIPhone || device.isIPad) {
-	      return "ios";
-	    } else if (device.isAndroid) {
-	      return "android";
+	      return true;
 	    }
-	    return "browser";
     };
 
 	this.calculateTime = function (obj) {
@@ -160,16 +157,17 @@ var LocalNotify = Class(Emitter, function (supr) {
 		// day or week or month, so for ios we need to change it to
 		// this format
 		// on other hand android takes repeat interval in miliseconds
-		if (time < 3600) {
-			time = "minute";
-		} else if (time < 86400) {
-			time = "hour";
-		} else if (time  < 604800) {
-			time = "day";
-		} else if (time < 2592000) {
+
+		if (time >= 2592000) {
+			time = "month"
+		} else if(time >= 60480) {
 			time = "week";
-		} else {
-			time = "month";
+		} else if (time >= 86400) {
+			time = "day";
+		} else if (time >= 3600) {
+			time = "hour";
+		} else if(time > 0)  {
+			time = "minute";
 		}
 		return time;
 	}
@@ -186,8 +184,8 @@ var LocalNotify = Class(Emitter, function (supr) {
 		}
 
 		if(opts.repeat) {
-			var time  = this.calculateTime(opts.repeat);
-			opts.repeat = this.getDevice() === "ios" ?
+			time  = this.calculateTime(opts.repeat);
+			opts.repeat = this.isIos() ?
 				this.getDiscreteTime(time) : time;
 		}
 

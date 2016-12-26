@@ -342,28 +342,30 @@
 		}
 
 		if(repeat !=nil) {
-           NSArray *items = @[@"minute", @"hour", @"day", @"week", @"month"];
-           int item = [items indexOfObject:repeat];
-           switch (item) {
-               case 0:
-                   n.repeatInterval = NSMinuteCalendarUnit;
-                   break;
-               case 1:
-                   n.repeatInterval = NSHourCalendarUnit;
-                   break;
-               case 2:
-                   n.repeatInterval = NSDayCalendarUnit;
-                   break;
-               case 3:
-                   n.repeatInterval = NSWeekCalendarUnit;
-                   break;
-               case 4:
-                   n.repeatInterval=  NSMonthCalendarUnit;
-               default:
-                   n.repeatInterval = 0;
-                   break;
-           }
-       }
+			NSArray *items = @[@"minute", @"hour", @"day", @"week", @"month"];
+			int item = [items indexOfObject:repeat];
+			NSLOG(@"{localNotify} scheduling notification with repeat on every", repeat);
+			switch (item) {
+				case 0:
+					n.repeatInterval = NSMinuteCalendarUnit;
+					break;
+				case 1:
+					n.repeatInterval = NSHourCalendarUnit;
+					break;
+				case 2:
+					n.repeatInterval = NSDayCalendarUnit;
+				break;
+				case 3:
+					n.repeatInterval = NSWeekCalendarUnit;
+					break;
+				case 4:
+					n.repeatInterval=  NSMonthCalendarUnit;
+					break;
+				default:
+					n.repeatInterval = 0;
+					break;
+			}
+		}
 
 		// Cancel existing one
 		[self cancelNotificationByName:name];
