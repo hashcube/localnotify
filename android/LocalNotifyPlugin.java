@@ -67,6 +67,7 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 		boolean shown;
 		int number;
 		long utc; // seconds
+		long repeat; // seconds
 	}
 
 	public class ScheduledData {
@@ -214,9 +215,14 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 			intent.putExtra("icon", n.icon);
 			intent.putExtra("userDefined", n.userDefined);
 			intent.putExtra("utc", n.utc);
+			intent.putExtra("repeat", n.repeat);
 			intent.putExtra("fromLocalNotify", true);
 
-			_alarmManager.set(AlarmManager.RTC_WAKEUP, n.utc * 1000, PendingIntent.getBroadcast(_context, ALARM_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT));
+			if(n.repeat > 0) {
+				_alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, n.utc * 1000, n.repeat * 1000, PendingIntent.getBroadcast(_context, ALARM_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT));
+			} else {
+				_alarmManager.set(AlarmManager.RTC_WAKEUP, n.utc * 1000, PendingIntent.getBroadcast(_context, ALARM_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT));
+			}
 		}
 	}
 
@@ -257,6 +263,7 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 				n.launched = true;
 				_launchName = null;
 				logger.log("{localNotify} Delivering launch alarm to JS:", n.name);
+
 			} else {
 				logger.log("{localNotify} Delivering alarm to JS:", n.name);
 			}
@@ -267,16 +274,15 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 
 	public void deliverAlarm(NotificationData n) {
 		removeAlarm(n.name);
-
 		deliverAlarmToJS(n);
 
 		if (!_active) {
 			// Place in status bar from background
 			logger.log("{localNotify} Displaying alarm in status bar:", n.name);
-
 			showNotification(_context, n);
 		}
 	}
+
 
     public void broadcastReceived(final Context context, Intent intent) {
 		final String NAME = intent.getStringExtra("name");
@@ -292,29 +298,25 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 
 		if (info == null) {
 			// no scheduled event with this name -- create one from the intent
-			NotificationData n = new NotificationData();
-			n.name = NAME;
-			n.text = intent.getStringExtra("text");
-			n.number = intent.getIntExtra("number", 1);
-			n.sound = intent.getStringExtra("sound");
-			n.title = intent.getStringExtra("title");
-			n.icon = intent.getStringExtra("icon");
-			n.vibrate = intent.getBooleanExtra("vibrate", false);
-			n.userDefined = intent.getStringExtra("userDefined");
-
-			deliverAlarm(n);
-
-			//logger.log("{localNotify} Received unscheduled alarm for", NAME);
-		} else {
-			logger.log("{localNotify} Alarm triggered:", NAME);
-			deliverAlarm(info);
+			info = new NotificationData();
+			info.name = NAME;
+			info.text = intent.getStringExtra("text");
+			info.number = intent.getIntExtra("number", 1);
+			info.sound = intent.getStringExtra("sound");
+			info.title = intent.getStringExtra("title");
+			info.icon = intent.getStringExtra("icon");
+			info.vibrate = intent.getBooleanExtra("vibrate", false);
+			info.userDefined = intent.getStringExtra("userDefined");
+			logger.log("{localNotify} Received unscheduled alarm for", NAME);
 		}
+		deliverAlarm(info);
     }
 
     @Override
     public void onReceive(final Context context, Intent intent) {
 		String action = intent.getAction();
 
+		logger.log("{localNotify} onReceive");
 		// NOTE: This is called on a new empty instance of the class
 		if (action.equals("android.intent.action.BOOT_COMPLETED")) {
 			// TODO: Handle this
@@ -334,6 +336,7 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 					n.icon = intent.getStringExtra("icon");
 					n.userDefined = intent.getStringExtra("userDefined");
 					n.utc = intent.getLongExtra("utc", 0);
+					n.repeat = intent.getLongExtra("repeat", 0);
 					n.launched = false;
 					n.shown = false;
 
@@ -410,13 +413,8 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 			logger.log("{localNotify} Initializing");
 
 			_launchName = null;
+			onNewIntent(activity.getIntent());
 
-			// If was launched from local notification,
-			if (bundle != null && bundle.containsKey("fromLocalNotify")) {
-				_launchName = bundle.getString("name");
-
-				logger.log("{localNotify} Launched from notification", _launchName);
-			}
 		} catch (Exception e) {
 			logger.log("{localNotify} WARNING: Exception while reading create intent:", e);
 		}
@@ -559,6 +557,7 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 			final String TITLE = jsonObject.optString("title", "");
 			final String ICON = jsonObject.optString("icon", "");
 			final int UTC = jsonObject.optInt("utc", 0); // seconds
+			final int REPEAT = jsonObject.optInt("repeat", 0); // seconds
 			final String USER_DEFINED = jsonObject.optString("userDefined", "{}");
 
 			// Build notification object
@@ -572,6 +571,7 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 			n.vibrate = VIBRATE;
 			n.userDefined = new String(USER_DEFINED);
 			n.utc = UTC;
+			n.repeat = REPEAT;
 			n.launched = false;
 			n.shown = false;
 
@@ -605,6 +605,9 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 				logger.log("{localNotify} App launched from notification:", NAME);
 
 				_launchName = NAME;
+			} else {
+
+				logger.log("{localNotify} on new intent Launched not from notification");
 			}
 		}
 	}

@@ -127,6 +127,53 @@ var LocalNotify = Class(Emitter, function (supr) {
 		}));
 	}
 
+	this.getDevice = function () {
+	    if (device.isIPhone || device.isIPad) {
+	      return "ios";
+	    } else if (device.isAndroid) {
+	      return "android";
+	    }
+	    return "browser";
+    };
+
+	this.calculateTime = function (obj) {
+		var time = 0;
+
+		if (obj.seconds) {
+			time += obj.seconds;
+		}
+		if (obj.minutes) {
+			time += obj.minutes * 60;
+		}
+		if (obj.hours) {
+			time += obj.hours * 60 * 60;
+		}
+		if (obj.days) {
+			time += obj.days * 60 * 60 * 24;
+		}
+		return time;
+	}
+
+	this.getDiscreteTime = function (time) {
+		// as ios only support repeat notification in
+		// either after a each minute or each hour or
+		// day or week or month, so for ios we need to change it to
+		// this format
+		// on other hand android takes repeat interval in miliseconds
+		if (time < 3600) {
+			time = "minute";
+		} else if (time < 86400) {
+			time = "hour";
+		} else if (time  < 604800) {
+			time = "day";
+		} else if (time < 2592000) {
+			time = "week";
+		} else {
+			time = "month";
+		}
+		return time;
+	}
+
 	this.add = function(opts) {
 		// Inject date
 		var date = opts.date;
@@ -135,21 +182,14 @@ var LocalNotify = Class(Emitter, function (supr) {
 		}
 		var time = date.getTime() / 1000;
 		if (opts.delay) {
-			var delay = opts.delay;
-			if (delay.seconds) {
-				time += delay.seconds;
-			}
-			if (delay.minutes) {
-				time += delay.minutes * 60;
-			}
-			if (delay.hours) {
-				time += delay.hours * 60 * 60;
-			}
-			if (delay.days) {
-				time += delay.days * 60 * 60 * 24;
-			}
+			opts.utc = time + this.calculateTime(opts.delay);
 		}
-		opts.utc = time;
+
+		if(opts.repeat) {
+			var time  = this.calculateTime(opts.repeat);
+			opts.repeat = this.getDevice() === "ios" ?
+				this.getDiscreteTime(time) : time;
+		}
 
 		if (typeof opts.userDefined === "object") {
 			opts.userDefined = JSON.stringify(opts.userDefined);

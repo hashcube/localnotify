@@ -30,7 +30,7 @@
 		UILocalNotification *n = [notifications objectAtIndex:ii];
 
 		// If expired,
-		if ([n.fireDate timeIntervalSinceNow] <= 0) {
+		if ([n.fireDate timeIntervalSinceNow] <= 0 && n.repeatInterval == 0) {
 			NSLOG(@"{localNotify} Canceling expired notification");
 
 			[[UIApplication sharedApplication] cancelLocalNotification:n];
@@ -100,6 +100,26 @@
 	if (n.fireDate != nil) {
 		utc = [NSNumber numberWithInt:(int)([n.fireDate timeIntervalSince1970] + 0.5)];
 	}
+	NSString *repeat = @"";
+	switch (n.repeatInterval) {
+       case NSMinuteCalendarUnit:
+           repeat = @"minute";
+           break;
+       case NSHourCalendarUnit:
+           repeat = @"hour";
+           break;
+       case NSDayCalendarUnit:
+           repeat = @"day";
+           break;
+       case NSWeekCalendarUnit:
+           repeat= @"week";
+           break;
+       case NSMonthCalendarUnit:
+           repeat = @"month";
+       default:
+           repeat = @"";
+           break;
+	}
 
 	NSNumber* num = [[NSNumber alloc] initWithInteger:n.applicationIconBadgeNumber];
 	return @{
@@ -109,6 +129,7 @@
 		@"action": (n.alertAction != nil) ? n.alertAction : [NSNull null],
 		@"text": (n.alertBody != nil) ? n.alertBody : [NSNull null],
 		@"utc": (utc != nil) ? utc : [NSNull null],
+		@"repeat": repeat,
 		@"launched": [NSNumber numberWithBool:didLaunch],
 		@"shown": [NSNumber numberWithBool:shown],
 		@"userDefined": n.userInfo[@"userDefined"]
@@ -282,6 +303,7 @@
 		id sound = [jsonObject valueForKey:@"sound"];
 		NSString *action = [jsonObject valueForKey:@"action"];
 		NSNumber *utc = [jsonObject valueForKey:@"utc"];
+		NSString *repeat = [jsonObject valueForKey:@"repeat"];
 		NSString *userDefined = [jsonObject valueForKey:@"userDefined"];
 
 		// Construct notification from input
@@ -318,6 +340,30 @@
 				n.timeZone = [NSTimeZone defaultTimeZone];
 			}
 		}
+
+		if(repeat !=nil) {
+           NSArray *items = @[@"minute", @"hour", @"day", @"week", @"month"];
+           int item = [items indexOfObject:repeat];
+           switch (item) {
+               case 0:
+                   n.repeatInterval = NSMinuteCalendarUnit;
+                   break;
+               case 1:
+                   n.repeatInterval = NSHourCalendarUnit;
+                   break;
+               case 2:
+                   n.repeatInterval = NSDayCalendarUnit;
+                   break;
+               case 3:
+                   n.repeatInterval = NSWeekCalendarUnit;
+                   break;
+               case 4:
+                   n.repeatInterval=  NSMonthCalendarUnit;
+               default:
+                   n.repeatInterval = 0;
+                   break;
+           }
+       }
 
 		// Cancel existing one
 		[self cancelNotificationByName:name];
