@@ -133,11 +133,11 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 	}
 
 	public class LocalNotificationOpen extends com.tealeaf.event.Event {
-		String noti_type;
+		String type;
 
 		public LocalNotificationOpen(String type) {
 			super("LocalNotificationOpen");
-			this.noti_type = type;
+			this.type = type;
 		}
 	}
 
@@ -417,16 +417,9 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 	public void onCreate(Activity activity, Bundle bundle) {
 		try {
 			logger.log("{localNotify} Initializing");
-
-			_launchName = null;
-
 			Intent intent = activity.getIntent();
-
-			if (intent != null && intent.getExtras().getBoolean("fromLocalNotify")) {
-				_launchName = intent.getExtras().getString("name");
-
-				logger.log("{localNotify} Launched from notification", _launchName);
-				EventQueue.pushEvent(new LocalNotificationOpen(_launchName));
+			if(intent != null){
+				onNewIntent(intent);
 			}
 		} catch (Exception e) {
 			logger.log("{localNotify} WARNING: Exception while reading create intent:", e);

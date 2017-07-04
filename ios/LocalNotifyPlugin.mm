@@ -149,12 +149,12 @@
 	bool didLaunch = app.applicationState == UIApplicationStateInactive ||
 					 app.applicationState == UIApplicationStateBackground;
     
-    if(didLaunch) {
-        NSString *event = [notification.userInfo valueForKey:@"name"];
-        [[PluginManager get] dispatchJSEvent: [NSDictionary dictionaryWithObjectsAndKeys:
+    	if(didLaunch) {
+        	NSString *event = [notification.userInfo valueForKey:@"name"];
+        	[[PluginManager get] dispatchJSEvent: [NSDictionary dictionaryWithObjectsAndKeys:
                                                @"LocalNotificationOpen",@"name",
-                                               event,@"noti_type", nil]];
-    }
+                                               event,@"type", nil]];
+    	}
 
 	[self reportNotification:notification didLaunch:didLaunch shown:didLaunch];
 }
