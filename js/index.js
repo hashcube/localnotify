@@ -11,6 +11,8 @@ var LocalNotify = Class(Emitter, function (supr) {
 	var _getCB = {};
 	var _pending = [];
 	var _onNotify;
+	var data = {};
+	var cb = null;
 
 	var deliverPending = function() {
 		if (_onNotify) {
@@ -28,6 +30,19 @@ var LocalNotify = Class(Emitter, function (supr) {
 		} catch (e) {
 		}
 	}
+
+	var invokeCallback = function () {
+    		var args = arguments;
+
+    		// If callback available,
+    		if (cb) {
+      			// Run it
+      			cb.apply(null, args);
+    		} else {
+      			// Store it
+      			data[args[0]] = args[1];
+    		}
+   	}
 
 	this.init = function() {
 		supr(this, 'init', arguments);
@@ -72,6 +87,10 @@ var LocalNotify = Class(Emitter, function (supr) {
 				_pending.push(info);
 			}
 		});
+		
+		nativeRegisterHandler('LocalNotificationOpen', function(v) {
+      			invokeCallback(v);
+  		});
 
 		setProperty(this, "onNotify", {
 			set: function(f) {
@@ -175,6 +194,7 @@ var LocalNotify = Class(Emitter, function (supr) {
 	this.add = function(opts) {
 		// Inject date
 		var date = opts.date;
+
 		if (!date) {
 			date = new Date();
 		}
@@ -197,6 +217,16 @@ var LocalNotify = Class(Emitter, function (supr) {
 
 		nativeSendEvent("LocalNotifyPlugin", "Add", JSON.stringify(opts));
 	}
+
+	this.registerCallback = function (callback) {
+		cb = callback;
+    		for (var key in data) {
+      			if (data.hasOwnProperty(key)) {
+        			invokeCallback(key, data[key]);
+        			delete data[key];
+      			}
+    		}
+  	}
 });
 
 exports = new LocalNotify();
