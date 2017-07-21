@@ -305,6 +305,7 @@
 
 		NSLOG(@"{localNotify} Add requested for %@", name);
 
+		NSString *title = [jsonObject valueForKey:@"title"];
 		NSString *text = [jsonObject valueForKey:@"text"];
 		NSNumber *number = [jsonObject valueForKey:@"number"];
 		id sound = [jsonObject valueForKey:@"sound"];
@@ -317,6 +318,7 @@
 		UILocalNotification *n = [[UILocalNotification alloc] init];
 		n.alertAction = action;
 		n.hasAction = (action != nil);
+               n.alertTitle = title;
 		n.alertBody = text;
 		n.applicationIconBadgeNumber = (number != nil) ? [number integerValue] : 0;
 		if (sound != nil) {
