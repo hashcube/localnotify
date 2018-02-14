@@ -259,7 +259,7 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 		Intent intent = new Intent(ACTION_NOTIFY, null, _context, LocalNotifyPlugin.class);
 		intent.addCategory(name); // for cancel
 
-		_alarmManager.cancel(PendingIntent.getBroadcast(_context, ALARM_CODE, intent, PendingIntent.FLAG_CANCEL_CURRENT));
+		_alarmManager.cancel(PendingIntent.getBroadcast(_context, ALARM_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT));
 	}
 
 	public void deliverAlarmToJS(NotificationData n) {
