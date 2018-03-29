@@ -28,6 +28,8 @@ import android.content.ComponentName;
 import android.os.IBinder;
 import android.app.PendingIntent;
 import android.app.NotificationManager;
+import android.app.NotificationChannel;
+import android.support.v4.app.NotificationManagerCompat;
 import android.app.AlarmManager;
 import android.support.v4.app.NotificationCompat;
 import android.app.Notification;
@@ -45,6 +47,10 @@ import android.util.Base64;
 import com.google.gson.Gson;
 
 public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
+	private boolean showBadge = false;
+	private boolean enableLight = false;
+	private String channelName = "Offline Notifications";
+
 	protected Context _context;
 	protected Activity _activity;
 	protected AlarmManager _alarmManager;
@@ -159,7 +165,7 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 			defaults |= Notification.DEFAULT_SOUND;
 		}
 
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(context, getDefaultChannelId(context))
 			.setAutoCancel(true)
 			.setSmallIcon(context.getResources().getIdentifier("notifyicon", "drawable", context.getPackageName()))
 			.setLargeIcon(icon)
@@ -327,9 +333,9 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 
 		logger.log("{localNotify} onReceive");
 		// NOTE: This is called on a new empty instance of the class
-		if (action.equals("android.intent.action.BOOT_COMPLETED")) {
+		if ("android.intent.action.BOOT_COMPLETED".equals(action)) {
 			// TODO: Handle this
-		} else if (action.equals(ACTION_NOTIFY)) {
+		} else if (ACTION_NOTIFY.equals(action)) {
 			if (_plugin != null) {
 				_plugin.broadcastReceived(context, intent);
 			} else {
@@ -410,6 +416,50 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 		}
 	}
 
+	private static String getDefaultChannelId (Context appContext) {
+		return appContext.getPackageName() + ".offline_channel";
+	}
+
+	private void setupChannel () {
+		logger.log("localNotify inside setup channel ");
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+			logger.log("{localNotify} inside setup channel for versions above oroe");
+
+			try {
+				PackageManager manager = _activity.getBaseContext().getPackageManager();
+				Bundle meta = manager.getApplicationInfo(_activity.getPackageName(), PackageManager.GET_META_DATA).metaData;
+
+				if (meta != null) {
+					String currChannelName = meta.getString("LOCALNOTIFY_CHANNEL_NAME");
+
+					enableLight = meta.getBoolean("LOCALNOTIFY_ENABLE_LIGHT", enableLight);
+					showBadge = meta.getBoolean("LOCALNOTIFY_SHOW_BADGE", showBadge);
+
+					if (currChannelName != null && currChannelName.trim().length() > 0) {
+						channelName = currChannelName;
+					}
+
+					logger.log("localNotify Loaded data: " + channelName + " enable light: " + enableLight + " show badge: "+ showBadge);
+					NotificationChannel notificationChannel = new NotificationChannel(getDefaultChannelId(_context),
+						channelName, NotificationManagerCompat.IMPORTANCE_DEFAULT);
+					if (enableLight) {
+						notificationChannel.enableLights(true);
+					}
+
+					if (showBadge) {
+						notificationChannel.setShowBadge(true);
+					}
+
+					NotificationManager notificationManager = (NotificationManager) _activity.getSystemService(Context.NOTIFICATION_SERVICE);
+					notificationManager.createNotificationChannel(notificationChannel);
+					logger.log("localNotify inside setup channel end channel create");
+				}
+			} catch (Exception ex) {
+				logger.log("{localNotify}: Exception while loading default channel info:", ex);
+			}
+		}
+	}
+
 	public void onCreateApplication(Context applicationContext) {
 		_context = applicationContext;
 		_alarmManager = (AlarmManager) _context.getSystemService(Context.ALARM_SERVICE);
@@ -429,6 +479,7 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 		}
 
 		_activity = activity;
+		setupChannel();
 	}
 
 	public void onStart() {
@@ -604,7 +655,7 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 		String action = intent.getAction();
 
 		// If looking at launch intent,
-		if (action.equals("android.intent.action.MAIN")) {
+		if ("android.intent.action.MAIN".equals(action)) {
 			final boolean FROM_LOCALNOTIFY = intent.getBooleanExtra("fromLocalNotify", false);
 
 			// If launched from a notification,
