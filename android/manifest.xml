@@ -2,6 +2,9 @@
 <!--END_PLUGINS_MANIFEST-->
 <!--START_PLUGINS_APPLICATION-->
 	<!--LocalNotify-->
+	<meta-data android:name="LOCALNOTIFY_CHANNEL_NAME" android:value="" />
+	<meta-data android:name="LOCALNOTIFY_ENABLE_LIGHT" android:value="" />
+	<meta-data android:name="LOCALNOTIFY_SHOW_BADGE" android:value="" />
 	<receiver android:name="com.tealeaf.plugin.plugins.LocalNotifyPlugin" android:enabled="true" />
 <!--END_PLUGINS_APPLICATION-->
 
