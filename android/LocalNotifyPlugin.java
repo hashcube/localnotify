@@ -181,6 +181,10 @@ public class LocalNotifyPlugin extends BroadcastReceiver implements IPlugin {
 		// TODO: Icon and sound
 
 		Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+
+		if (intent == null) {
+			return;
+		}
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 		intent.putExtra("name", info.name);
 		intent.putExtra("fromLocalNotify", true);
